@@ -92,7 +92,7 @@ resource "aws_instance" "web-2" {
 resource "aws_instance" "web-3" {
   ami                         = "ami-0230bd60aa48260c6"
   instance_type               = "t2.micro"
-  availability_zone           = "us-east-1a"
+  availability_zone           = "us-east-1b"
   associate_public_ip_address = true
   subnet_id                   = aws_subnet.web-2.id
   vpc_security_group_ids      = [aws_security_group.web.id]
@@ -103,7 +103,7 @@ resource "aws_instance" "web-3" {
 resource "aws_instance" "web-4" {
   ami                         = "ami-0230bd60aa48260c6"
   instance_type               = "t2.micro"
-  availability_zone           = "us-east-1a"
+  availability_zone           = "us-east-1b"
   associate_public_ip_address = true
   subnet_id                   = aws_subnet.web-2.id
   vpc_security_group_ids      = [aws_security_group.web.id]
