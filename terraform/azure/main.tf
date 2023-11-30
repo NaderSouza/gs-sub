@@ -33,8 +33,10 @@ resource "azurerm_network_interface" "web_interface-1" {
     name                          = "example-config"
     subnet_id                     = azurerm_subnet.web_subnet-1.id
     private_ip_address_allocation = "Dynamic"
+     public_ip_address_id          = azurerm_public_ip.web_subnet-1.id
   }
 }
+
 
 resource "azurerm_network_interface" "web_interface-2" {
   name                = "example-nic2"
