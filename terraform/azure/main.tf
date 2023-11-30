@@ -24,6 +24,20 @@ resource "azurerm_subnet" "web_subnet-2" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
+resource "azurerm_public_ip" "web_subnet-1" {
+  name                = "example-lb-public-ip-1"
+  resource_group_name = azurerm_resource_group.web.name
+  location            = azurerm_resource_group.web.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_public_ip" "web_subnet-2" {
+  name                = "example-lb-public-ip-2"
+  resource_group_name = azurerm_resource_group.web.name
+  location            = azurerm_resource_group.web.location
+  allocation_method   = "Static"
+}
+
 resource "azurerm_network_interface" "web_interface-1" {
   name                = "example-nic"
   location            = azurerm_resource_group.web.location
@@ -33,10 +47,9 @@ resource "azurerm_network_interface" "web_interface-1" {
     name                          = "example-config"
     subnet_id                     = azurerm_subnet.web_subnet-1.id
     private_ip_address_allocation = "Dynamic"
-     public_ip_address_id          = azurerm_public_ip.web_subnet-1.id
+    public_ip_address_id          = azurerm_public_ip.web_subnet-1.id
   }
 }
-
 
 resource "azurerm_network_interface" "web_interface-2" {
   name                = "example-nic2"
@@ -47,6 +60,7 @@ resource "azurerm_network_interface" "web_interface-2" {
     name                          = "example-config2"
     subnet_id                     = azurerm_subnet.web_subnet-2.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.web_subnet-2.id
   }
 }
 
@@ -57,7 +71,7 @@ resource "azurerm_linux_virtual_machine" "linux-vm" {
   size                = "Standard_B1s"
   admin_username      = "adminuser"
   admin_password      = "Password1234!"
-   disable_password_authentication = false
+  disable_password_authentication = false
 
   network_interface_ids = [azurerm_network_interface.web_interface-1.id]
 
@@ -83,7 +97,7 @@ resource "azurerm_linux_virtual_machine" "vm-1" {
   size                = "Standard_B1s"
   admin_username      = "adminuser"
   admin_password      = "Password1234!"
-   disable_password_authentication = false
+  disable_password_authentication = false
 
   network_interface_ids = [azurerm_network_interface.web_interface-2.id]
 
@@ -114,13 +128,6 @@ resource "azurerm_lb" "lb" {
   }
 }
 
-resource "azurerm_public_ip" "azure_ip" {
-  name                = "example-lb-public-ip"
-  resource_group_name = azurerm_resource_group.web.name
-  location            = azurerm_resource_group.web.location
-  allocation_method   = "Static"
-}
-
 resource "azurerm_lb_backend_address_pool" "lb_pool" {
   name                = "example-lb-backend-pool"
   loadbalancer_id     = azurerm_lb.lb.id
@@ -142,4 +149,3 @@ resource "azurerm_lb_rule" "lb_rule" {
   backend_port                   = 80
   protocol                       = "Tcp"
 }
-
