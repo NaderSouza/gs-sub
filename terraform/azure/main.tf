@@ -54,6 +54,7 @@ resource "azurerm_linux_virtual_machine" "linux-vm" {
   location            = azurerm_resource_group.web.location
   size                = "Standard_A0"
   admin_username      = "adminuser"
+  admin_password      = "Password1234!"
 
   network_interface_ids = [azurerm_network_interface.web_interface-1.id]
 
@@ -78,6 +79,7 @@ resource "azurerm_linux_virtual_machine" "vm-1" {
   location            = azurerm_resource_group.web.location
   size                = "Standard_A0"
   admin_username      = "adminuser"
+  admin_password      = "Password1234!"
 
   network_interface_ids = [azurerm_network_interface.web_interface-2.id]
 
