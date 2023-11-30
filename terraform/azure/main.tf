@@ -117,13 +117,11 @@ resource "azurerm_public_ip" "azure_ip" {
 
 resource "azurerm_lb_backend_address_pool" "lb_pool" {
   name                = "example-lb-backend-pool"
-  resource_group_name = azurerm_resource_group.web.name
   loadbalancer_id     = azurerm_lb.lb.id
 }
 
 resource "azurerm_lb_probe" "lb_probe" {
   name                = "example-lb-probe"
-  resource_group_name = azurerm_resource_group.web.name
   loadbalancer_id     = azurerm_lb.lb.id
   port                = 80
   protocol            = "Tcp"
@@ -131,11 +129,11 @@ resource "azurerm_lb_probe" "lb_probe" {
 
 resource "azurerm_lb_rule" "lb_rule" {
   name                           = "example-lb-rule"
-  resource_group_name            = azurerm_resource_group.web.name
   loadbalancer_id                = azurerm_lb.lb.id
   frontend_ip_configuration_name = "PublicIPAddress"
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.lb_pool.id
+  backend_address_pool_ids        = [azurerm_lb_backend_address_pool.lb_pool.id]
   frontend_port                  = 80
   backend_port                   = 80
   protocol                       = "Tcp"
 }
+
