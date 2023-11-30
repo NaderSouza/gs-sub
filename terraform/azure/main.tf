@@ -52,7 +52,7 @@ resource "azurerm_linux_virtual_machine" "linux-vm" {
   name                = "example-machine"
   resource_group_name = azurerm_resource_group.web.name
   location            = azurerm_resource_group.web.location
-  size                = "Standard_A0"
+  size                = "Standard_B1s"
   admin_username      = "adminuser"
   admin_password      = "Password1234!"
    disable_password_authentication = false
@@ -78,7 +78,7 @@ resource "azurerm_linux_virtual_machine" "vm-1" {
   name                = "example-machine2"
   resource_group_name = azurerm_resource_group.web.name
   location            = azurerm_resource_group.web.location
-  size                = "Standard_A0"
+  size                = "Standard_B1s"
   admin_username      = "adminuser"
   admin_password      = "Password1234!"
    disable_password_authentication = false
