@@ -130,6 +130,8 @@ resource "azurerm_lb_probe" "lb_probe" {
   protocol            = "Tcp"
 }
 
+
+
 resource "azurerm_lb_rule" "lb_rule" {
   name                           = "example-lb-rule"
   resource_group_name            = azurerm_resource_group.web.name
