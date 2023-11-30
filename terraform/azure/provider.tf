@@ -7,7 +7,7 @@ terraform {
   }
   backend "azurerm" {
     resource_group_name  = "nader-gs"
-    storage_account_name = "nadergs"
+    storage_account_name = "nadergs1"
     container_name       = "load"
     key                  = "terraform.tfstate"
   }
@@ -17,3 +17,4 @@ provider "azurerm" {
   features {}
   use_msi                    = true
 }
+
