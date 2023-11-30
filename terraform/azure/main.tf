@@ -1,5 +1,5 @@
 resource "azurerm_resource_group" "web" {
-  name     = "nader-gs"
+  name     = "web"
   location = "East US"
 }
 
@@ -48,7 +48,6 @@ resource "azurerm_network_interface" "web_interface-2" {
   }
 }
 
-
 resource "azurerm_linux_virtual_machine" "linux-vm" {
   name                = "example-machine"
   resource_group_name = azurerm_resource_group.web.name
@@ -70,7 +69,7 @@ resource "azurerm_linux_virtual_machine" "linux-vm" {
     version   = "latest"
   }
 
-  custom_data = base64encode(file("./script/user_data.sh"))
+  # custom_data = base64encode(file("./script/user_data.sh"))
 }
 
 resource "azurerm_linux_virtual_machine" "vm-1" {
@@ -94,7 +93,7 @@ resource "azurerm_linux_virtual_machine" "vm-1" {
     version   = "latest"
   }
 
-  custom_data = base64encode(file("./script/user_data.sh"))
+  # custom_data = base64encode(file("${path.module}/script/user_data.sh"))
 }
 
 resource "azurerm_lb" "lb" {
@@ -105,7 +104,7 @@ resource "azurerm_lb" "lb" {
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
-    public_ip_address_id = azurerm_public_ip.example.id
+    public_ip_address_id = azurerm_public_ip.azure_ip.id
   }
 }
 
@@ -119,25 +118,23 @@ resource "azurerm_public_ip" "azure_ip" {
 resource "azurerm_lb_backend_address_pool" "lb_pool" {
   name                = "example-lb-backend-pool"
   resource_group_name = azurerm_resource_group.web.name
-  loadbalancer_id     = azurerm_lb.example.id
+  loadbalancer_id     = azurerm_lb.lb.id
 }
 
 resource "azurerm_lb_probe" "lb_probe" {
   name                = "example-lb-probe"
   resource_group_name = azurerm_resource_group.web.name
-  loadbalancer_id     = azurerm_lb.example.id
+  loadbalancer_id     = azurerm_lb.lb.id
   port                = 80
   protocol            = "Tcp"
 }
 
-
-
 resource "azurerm_lb_rule" "lb_rule" {
   name                           = "example-lb-rule"
   resource_group_name            = azurerm_resource_group.web.name
-  loadbalancer_id                = azurerm_lb.example.id
+  loadbalancer_id                = azurerm_lb.lb.id
   frontend_ip_configuration_name = "PublicIPAddress"
-  backend_address_pool_id        = azurerm_lb_backend_address_pool.example.id
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.lb_pool.id
   frontend_port                  = 80
   backend_port                   = 80
   protocol                       = "Tcp"
