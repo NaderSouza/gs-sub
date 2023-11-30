@@ -1,5 +1,5 @@
 resource "azurerm_resource_group" "web" {
-  name     = "web"
+  name     = "web-2"
   location = "East US"
 }
 
