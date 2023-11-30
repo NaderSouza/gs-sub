@@ -1,196 +1,142 @@
 resource "azurerm_resource_group" "web" {
-  name     = "nader-gs-2"
+  name     = "nader-gs"
   location = "East US"
 }
 
-# Create a virtual network
-resource "azurerm_virtual_network" "web" {
-  name                = "virtual-network-name"
-  address_space       = ["172.0.0.0/16"]
+resource "azurerm_virtual_network" "web_network" {
+  name                = "example-network"
+  address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.web.location
   resource_group_name = azurerm_resource_group.web.name
 }
 
-# Create a subnet
-resource "azurerm_subnet" "web" {
-  name                 = "main-subnet"
+resource "azurerm_subnet" "web_subnet-1" {
+  name                 = "example-subnet"
   resource_group_name  = azurerm_resource_group.web.name
-  virtual_network_name = azurerm_virtual_network.web.name
-  address_prefixes     = ["172.0.2.0/24"]
+  virtual_network_name = azurerm_virtual_network.web_network.name
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
-# Create a Network Security Group and rule
-resource "azurerm_network_security_group" "web" {
-  name                = "network-security-group-name"
+resource "azurerm_subnet" "web_subnet-2" {
+  name                 = "example-subnet2"
+  resource_group_name  = azurerm_resource_group.web.name
+  virtual_network_name = azurerm_virtual_network.web_network.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "web_interface-1" {
+  name                = "example-nic"
   location            = azurerm_resource_group.web.location
   resource_group_name = azurerm_resource_group.web.name
 
-  security_rule {
-    name                       = "HTTP"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+  ip_configuration {
+    name                          = "example-config"
+    subnet_id                     = azurerm_subnet.web_subnet-1.id
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
-# Associate NSG to subnet
-resource "azurerm_subnet_network_security_group_association" "web" {
-  subnet_id                 = azurerm_subnet.web.id
-  network_security_group_id = azurerm_network_security_group.web.id
-}
-
-# Public IP address for the Load Balancer
-resource "azurerm_public_ip" "web" {
-  name                = "public-ip"
-  location            = azurerm_resource_group.web.location
-  resource_group_name = azurerm_resource_group.web.name
-  allocation_method   = "Static"
-}
-
-resource "azurerm_public_ip" "web_vm" {
-  name                = "public-ip-vm"
-  location            = azurerm_resource_group.web.location
-  resource_group_name = azurerm_resource_group.web.name
-  allocation_method   = "Dynamic"
-  domain_name_label   = "staticsite-vm-2"
-}
-
-# Load Balancer
-resource "azurerm_lb" "web" {
-  name                = "load-balancer"
+resource "azurerm_network_interface" "web_interface-2" {
+  name                = "example-nic2"
   location            = azurerm_resource_group.web.location
   resource_group_name = azurerm_resource_group.web.name
 
-  frontend_ip_configuration {
-    name                 = "public-ip"
-    public_ip_address_id = azurerm_public_ip.web.id
+  ip_configuration {
+    name                          = "example-config2"
+    subnet_id                     = azurerm_subnet.web_subnet-2.id
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
-# Load Balancer Backend Address Pool
-resource "azurerm_lb_backend_address_pool" "web" {
-  loadbalancer_id = azurerm_lb.web.id
-  name            = "backend-pool"
-}
 
-# Load Balancer Rule for HTTP Traffic.
-resource "azurerm_lb_rule" "web" {
-  name                           = "HTTP"
-  loadbalancer_id                = azurerm_lb.web.id
-  protocol                       = "Tcp"
-  frontend_port                  = 80
-  backend_port                   = 80
-  frontend_ip_configuration_name = "public-ip"
-  probe_id                       = azurerm_lb_probe.web.id
-  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.web.id]
-}
-
-# Load Balancer Health Probe for HTTP Traffic
-resource "azurerm_lb_probe" "web" {
-  name                = "health-probe"
-  loadbalancer_id     = azurerm_lb.web.id
-  protocol            = "Http"
-  port                = 80
-  request_path        = "/"
-  interval_in_seconds = 15
-  number_of_probes    = 2
-}
-
-# Azure Virtual Machine - Instance 1
-resource "azurerm_virtual_machine" "web_instance_1" {
-  name                = "web-instance-root-1"
+resource "azurerm_linux_virtual_machine" "linux-vm" {
+  name                = "example-machine"
   resource_group_name = azurerm_resource_group.web.name
   location            = azurerm_resource_group.web.location
-  vm_size             = "Standard_DS1_v2"
-  network_interface_ids = [azurerm_network_interface.web_nic_1.id]
+  size                = "Standard_A0"
+  admin_username      = "adminuser"
 
-  storage_image_reference {
+  network_interface_ids = [azurerm_network_interface.web_interface-1.id]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
-  storage_os_disk {
-    name              = "staticsite-vm-disk-1"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+  custom_data = base64encode(file("./script/user_data.sh"))
+}
+
+resource "azurerm_linux_virtual_machine" "vm-1" {
+  name                = "example-machine2"
+  resource_group_name = azurerm_resource_group.web.name
+  location            = azurerm_resource_group.web.location
+  size                = "Standard_A0"
+  admin_username      = "adminuser"
+
+  network_interface_ids = [azurerm_network_interface.web_interface-2.id]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  os_profile {
-    computer_name  = "staticsite-vm-1"
-    admin_username = "vmuser"
-    admin_password = "Password1234!"
-    custom_data    = base64encode(file("${path.module}/init/cloud_init.sh"))
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
   }
 
-  os_profile_linux_config {
-    disable_password_authentication = false
+  custom_data = base64encode(file("./script/user_data.sh"))
+}
+
+resource "azurerm_lb" "lb" {
+  name                = "example-lb"
+  resource_group_name = azurerm_resource_group.web.name
+  location            = azurerm_resource_group.web.location
+  sku                 = "Basic"
+
+  frontend_ip_configuration {
+    name                 = "PublicIPAddress"
+    public_ip_address_id = azurerm_public_ip.example.id
   }
 }
 
-# Create network interface for the VMs
-resource "azurerm_public_ip" "nic_1" {
-  name                = "public-ip-address-name1"
-  location            = azurerm_resource_group.web.location
+resource "azurerm_public_ip" "azure_ip" {
+  name                = "example-lb-public-ip"
   resource_group_name = azurerm_resource_group.web.name
+  location            = azurerm_resource_group.web.location
   allocation_method   = "Static"
 }
 
-resource "azurerm_network_interface" "web_nic_1" {
-  name                = "web-nic-1"
-  location            = azurerm_resource_group.web.location
+resource "azurerm_lb_backend_address_pool" "lb_pool" {
+  name                = "example-lb-backend-pool"
   resource_group_name = azurerm_resource_group.web.name
-
-  ip_configuration {
-    name                          = "ip-configuration1"
-    subnet_id                     = azurerm_subnet.web.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.nic_1.id
-  }
+  loadbalancer_id     = azurerm_lb.example.id
 }
 
-# Network Interface Back-end Address Pool Association
-resource "azurerm_network_interface_backend_address_pool_association" "web_nic1_association" {
-  network_interface_id    = azurerm_network_interface.web_nic_1.id
-  ip_configuration_name   = "ip-configuration1"
-  backend_address_pool_id = azurerm_lb_backend_address_pool.web.id
-}
-
-# Output the IP address of the Load Balancer
-output "lb_ip_address" {
-  value = azurerm_public_ip.web.ip_address
-}
-
-# Create the second VM
-resource "azurerm_public_ip" "nic_2" {
-  name                = "public-ip-address-name2"
-  location            = azurerm_resource_group.web.location
+resource "azurerm_lb_probe" "lb_probe" {
+  name                = "example-lb-probe"
   resource_group_name = azurerm_resource_group.web.name
-  allocation_method   = "Static"
+  loadbalancer_id     = azurerm_lb.example.id
+  port                = 80
+  protocol            = "Tcp"
 }
 
-resource "azurerm_network_interface" "web_nic_2" {
-  name                = "web-nic-2"
-  location            = azurerm_resource_group.web.location
-  resource_group_name = azurerm_resource_group.web.name
-
-  ip_configuration {
-    name                          = "ip-configuration2"
-    subnet_id                     = azurerm_subnet.web.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.nic_2.id
-  }
-}
-
-resource "azurerm_network_interface_backend_address_pool_association" "web_nic2_association" {
-  network_interface_id    = azurerm_network_interface.web_nic_2.id
-  ip_configuration_name   = "ip-configuration2"
-  backend_address_pool_id = azurerm_lb_backend_address_pool.web.id
+resource "azurerm_lb_rule" "lb_rule" {
+  name                           = "example-lb-rule"
+  resource_group_name            = azurerm_resource_group.web.name
+  loadbalancer_id                = azurerm_lb.example.id
+  frontend_ip_configuration_name = "PublicIPAddress"
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.example.id
+  frontend_port                  = 80
+  backend_port                   = 80
+  protocol                       = "Tcp"
 }

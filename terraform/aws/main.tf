@@ -96,7 +96,7 @@ resource "aws_instance" "web-3" {
   associate_public_ip_address = true
   subnet_id                   = aws_subnet.web-2.id
   vpc_security_group_ids      = [aws_security_group.web.id]
-  user_data                   = base64encode(data.template_file.user_data.rendered)
+  user_data                   = base64encode(data.template_file.user_data_2.rendered)
 
 }
 
@@ -107,7 +107,7 @@ resource "aws_instance" "web-4" {
   associate_public_ip_address = true
   subnet_id                   = aws_subnet.web-2.id
   vpc_security_group_ids      = [aws_security_group.web.id]
-  user_data                   = base64encode(data.template_file.user_data.rendered)
+  user_data                   = base64encode(data.template_file.user_data_2.rendered)
 
 }
 
@@ -115,6 +115,11 @@ resource "aws_instance" "web-4" {
 
 data "template_file" "user_data" {
   template = file("./script/user_data.sh")
+
+}
+
+data "template_file" "user_data_2" {
+  template = file("./script/user_data_2.sh")
 
 }
 
@@ -151,5 +156,17 @@ resource "aws_lb_target_group_attachment" "web-1" {
 resource "aws_lb_target_group_attachment" "web-2" {
   target_group_arn = aws_lb_target_group.tg.arn
   target_id        = aws_instance.web-2.id
+  port             = 80
+}
+
+resource "aws_lb_target_group_attachment" "web-3" {
+  target_group_arn = aws_lb_target_group.tg.arn
+  target_id        = aws_instance.web-3.id
+  port             = 80
+}
+
+resource "aws_lb_target_group_attachment" "web-4" {
+  target_group_arn = aws_lb_target_group.tg.arn
+  target_id        = aws_instance.web-4.id
   port             = 80
 }
