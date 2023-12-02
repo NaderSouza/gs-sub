@@ -96,7 +96,7 @@ resource "aws_instance" "web-3" {
   associate_public_ip_address = true
   subnet_id                   = aws_subnet.web-2.id
   vpc_security_group_ids      = [aws_security_group.web.id]
-  user_data                   = base64encode(data.template_file.user_data_2.rendered)
+  user_data                   = base64encode(data.template_file.user_data.rendered)
 
 }
 
@@ -107,7 +107,7 @@ resource "aws_instance" "web-4" {
   associate_public_ip_address = true
   subnet_id                   = aws_subnet.web-2.id
   vpc_security_group_ids      = [aws_security_group.web.id]
-  user_data                   = base64encode(data.template_file.user_data_2.rendered)
+  user_data                   = base64encode(data.template_file.user_data.rendered)
 
 }
 
@@ -118,10 +118,7 @@ data "template_file" "user_data" {
 
 }
 
-data "template_file" "user_data_2" {
-  template = file("./script/user_data_2.sh")
 
-}
 
 resource "aws_lb" "lb" {
   name               = "lb-nhs-sub"
