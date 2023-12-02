@@ -12,8 +12,8 @@ sudo systemctl enable httpd
 echo "Install application"
 cd /tmp
 git clone https://github.com/NaderSouza/gs-sub
-mkdir /var/www/html
-cp /tmp/gs-sub/app/*.html /var/www/html
+mkdir /var/www/html2
+cp /tmp/gs-sub/app/*.html /var/www/html2
 
 echo "Start Apache service"
 service httpd restart
