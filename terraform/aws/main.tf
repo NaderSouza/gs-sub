@@ -118,7 +118,7 @@ data "template_file" "user_data" {
 
 }
 
-data "template_file" "user_data" {
+data "template_file" "user_data2" {
   template = file("./script/user_data2.sh")
 
 }
